@@ -1,0 +1,5 @@
+orig/
+orig/*
+obj/
+obj/*
+.DS_Store

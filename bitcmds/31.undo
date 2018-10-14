@@ -1,0 +1,10 @@
+# This reverses 1.do. See that file.
+
+#Uncomment if you uncommented the analogous lines in 1.do.
+# xmodmap -e "remove control = Super_L"
+# xmodmap -e "add mod4 = Super_L"
+
+# setxkbmap -option altwin: does not work. This does.
+setxkbmap -option
+gsettings set org.gnome.desktop.wm.keybindings switch-applications "['<Super>Tab', '<Alt>Tab']"
+
