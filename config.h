@@ -9,8 +9,8 @@
 /* #define BIT2CMD (1<<1) */
   /* etc. */
 
-/* For each window class specified, include the bit value of the keyboard
-   settings to be enabled when that window class is active. */
+/* For each window name specified, include the bit value of the keyboard
+   settings to be enabled when that window name is active. */
 
 mappings keymaps[] = {
 	{ "soffice", CTRLCMD },
@@ -22,7 +22,8 @@ mappings keymaps[] = {
 	{ "Pinta", CTRLCMD },
 	{ "inkscape", CTRLCMD },
 	{ "gimp-2.8", CTRLCMD },
-	{ "retext", CTRLCMD },        
+	{ "retext", CTRLCMD },
+	{ "evince", CTRLCMD },
 
 /* Terminate the list with this couplet. */
 
