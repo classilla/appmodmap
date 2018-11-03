@@ -38,6 +38,9 @@ typedef struct mapping {
 #include USER_CONFIG
 #endif
 
+/* The below are not useful without locking or reconfiguring. */
+#ifdef USER_CONFIG
+
 void update_keymappings_for_bits(uint32_t newbitset) {
   uint32_t i, j = 1;
   int l;
@@ -66,19 +69,7 @@ void update_keymappings_for_bits(uint32_t newbitset) {
   bitset = newbitset;
 }
 
-void reset_daemon() {
-#if DEBUG
-  fprintf(stderr, "terminating\n");
-#endif
-  update_keymappings_for_bits(0);
-  if(close(lock_fd) || unlink(lockfile) || unlink(LOCK_FILE)) {
-    perror("unable to cleanup lock");
-  }
-}
-  
 void find_keymappings(unsigned long wid, XClassHint *c) {
-/* This is a no-op if there is no user config. */
-#ifdef USER_CONFIG
   mappings m;
   uint32_t i, newbitset = 0;
 
@@ -99,7 +90,16 @@ void find_keymappings(unsigned long wid, XClassHint *c) {
     }
   }
   update_keymappings_for_bits(newbitset);
+}
+
+void reset_daemon() {
+#if DEBUG
+  fprintf(stderr, "terminating\n");
 #endif
+  update_keymappings_for_bits(0);
+  if(close(lock_fd) || unlink(lockfile) || unlink(LOCK_FILE)) {
+    perror("unable to cleanup lock");
+  }
 }
 
 static void bye(int for_great_justice_take_off_every_sig) {
@@ -108,6 +108,8 @@ static void bye(int for_great_justice_take_off_every_sig) {
 #endif
   exit(0);
 }
+
+#endif
 
 static int xerrorh(Display *d, XErrorEvent *e) {
 #if DEBUG
@@ -142,6 +144,10 @@ int main(int argc, char **argv) {
   w = DefaultRootWindow(d);
   XSelectInput(d, w, PropertyChangeMask);
 
+#ifdef USER_CONFIG
+  /* Only worth doing this work for locking and unwinding if we actually
+     do something worth locking and unwinding for. */
+
   i = sprintf(lockfile, LOCK_FILE_PID, getpid());
   if (i < 1 || i >= (MAX_STRING_SIZE-1)) {
     fprintf(stderr, "unable to compute lock path\n");
@@ -163,6 +169,7 @@ int main(int argc, char **argv) {
     perror("sigaction failed");
     return 1;
   }
+#endif
 
   (void)memset(currentmap, 0, sizeof(currentmap));
   (void)XSetErrorHandler(xerrorh);
@@ -204,7 +211,9 @@ int main(int argc, char **argv) {
                 wid, c->res_name, c->res_class);
 #endif
 #endif
+#ifdef USER_CONFIG
               find_keymappings(wid, c);
+#endif
             }
 #if DEBUG
             else {
