@@ -2,20 +2,30 @@
    All rights reserved.
    BSD license. */
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-uint32_t bitset;
-struct sigaction action;
-
+#define LOCK_FILE "/tmp/ammd.lock"
+#define LOCK_FILE_PID "/tmp/ammd.lock.%u"
 #define MAX_STRING_SIZE 1024
+
 char currentmap[MAX_STRING_SIZE];
 char path[MAX_STRING_SIZE], basepath[MAX_STRING_SIZE];
+
+int lock_fd;
+char lockfile[MAX_STRING_SIZE];
+
+uint32_t bitset;
+struct sigaction action;
 
 typedef struct mapping {
   char *wclass;
@@ -56,11 +66,14 @@ void update_keymappings_for_bits(uint32_t newbitset) {
   bitset = newbitset;
 }
 
-void reset_all_keymappings() {
+void reset_daemon() {
 #if DEBUG
   fprintf(stderr, "terminating\n");
 #endif
   update_keymappings_for_bits(0);
+  if(close(lock_fd) || unlink(lockfile) || unlink(LOCK_FILE)) {
+    perror("unable to cleanup lock");
+  }
 }
   
 void find_keymappings(unsigned long wid, XClassHint *c) {
@@ -129,7 +142,21 @@ int main(int argc, char **argv) {
   w = DefaultRootWindow(d);
   XSelectInput(d, w, PropertyChangeMask);
 
-  atexit(reset_all_keymappings);
+  i = sprintf(lockfile, LOCK_FILE_PID, getpid());
+  if (i < 1 || i >= (MAX_STRING_SIZE-1)) {
+    fprintf(stderr, "unable to compute lock path\n");
+    return 1;
+  }
+
+  lock_fd = open(lockfile, O_CREAT);
+  if (link(lockfile, LOCK_FILE)) {
+    (void)close(lock_fd);
+    (void)unlink(lockfile);
+    perror("unable to lock: ammd already running?");
+    return 1;
+  }
+
+  atexit(reset_daemon);
   (void)memset(&action, 0, sizeof(action));
   action.sa_handler = bye;
   if (sigaction(SIGINT, &action, 0) || sigaction(SIGTERM, &action, 0)) {
