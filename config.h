@@ -13,6 +13,7 @@
    settings to be enabled when that window name is active. */
 
 mappings keymaps[] = {
+	{ "epiphany", CTRLCMD },
 	{ "soffice", CTRLCMD },
 	{ "libreoffice", CTRLCMD },
 	{ "gedit", CTRLCMD },
@@ -24,6 +25,7 @@ mappings keymaps[] = {
 	{ "gimp-2.8", CTRLCMD },
 	{ "retext", CTRLCMD },
 	{ "evince", CTRLCMD },
+	{ "ghex", CTRLCMD },
 
 /* Terminate the list with this couplet. */
 
