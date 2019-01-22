@@ -40,6 +40,8 @@ To add new application window name types, obtain the window name from the `XClas
 
 ## To-do
 
+`ammd` and `winclass` don't check the current front window; they only react on changes. If you start it from a terminal app that needs its services, the bitmap won't change until you switch to something else and then switch back.
+
 Make a friendlier way of configuring the daemon, maybe even allowing live changes. However, this would require coming up with some sort of configuration file format.
 
 Include additional typical keyboard primitives. (If you have some ideas, file a PR.)
