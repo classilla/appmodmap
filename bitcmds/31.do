@@ -1,5 +1,5 @@
 # This script sets the Command ("Super") key to be equivalent to Control,
-# and also sets the GNOME keybindings to that Super-Tab still switches.
+# and also sets the GNOME keybindings so that Super-Tab still switches.
 
 #Uncomment these lines if you use xmodmap instead of setxkbmap.
 #This is uncommon.

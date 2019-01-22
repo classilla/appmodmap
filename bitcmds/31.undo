@@ -1,4 +1,4 @@
-# This reverses 1.do. See that file.
+# This reverses 31.do. See that file.
 
 #Uncomment if you uncommented the analogous lines in 1.do.
 # xmodmap -e "remove control = Super_L"
