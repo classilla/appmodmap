@@ -1,4 +1,4 @@
-/* Copyright 2018 Cameron Kaiser.
+/* Copyright 2018-2020 Cameron Kaiser.
    All rights reserved.
    BSD license. */
 
@@ -14,15 +14,15 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#define LOCK_FILE "/tmp/ammd.lock"
-#define LOCK_FILE_PID "/tmp/ammd.lock.%u"
 #define MAX_STRING_SIZE 1024
 
 char currentmap[MAX_STRING_SIZE];
 char path[MAX_STRING_SIZE], basepath[MAX_STRING_SIZE];
 
+#define LOCK_FILE "%s/ammd.lock"
+#define LOCK_FILE_PID "%s/ammd.lock.%u"
 int lock_fd;
-char lockfile[MAX_STRING_SIZE];
+char lockfile[MAX_STRING_SIZE], lockfile_pid[MAX_STRING_SIZE];
 
 uint32_t bitset;
 struct sigaction action;
@@ -89,6 +89,9 @@ void find_keymappings(unsigned long wid, XClassHint *c) {
       break;
     }
   }
+#if DEBUG
+  fprintf(stderr, "new bit set: 0x%08x\n", newbitset);
+#endif
   update_keymappings_for_bits(newbitset);
 }
 
@@ -97,7 +100,7 @@ void reset_daemon() {
   fprintf(stderr, "terminating\n");
 #endif
   update_keymappings_for_bits(0);
-  if(close(lock_fd) || unlink(lockfile) || unlink(LOCK_FILE)) {
+  if(close(lock_fd) || unlink(lockfile_pid) || unlink(lockfile)) {
     perror("unable to cleanup lock");
   }
 }
@@ -123,7 +126,8 @@ int main(int argc, char **argv) {
   Display *d;
   Window w;
   XEvent e;
-  int i;
+  int i, j;
+  char *xdgrd;
 
   if (!getenv("HOME")) {
     fprintf(stderr, "unable to determine home directory\n");
@@ -148,16 +152,23 @@ int main(int argc, char **argv) {
   /* Only worth doing this work for locking and unwinding if we actually
      do something worth locking and unwinding for. */
 
-  i = sprintf(lockfile, LOCK_FILE_PID, getpid());
-  if (i < 1 || i >= (MAX_STRING_SIZE-1)) {
+  if ((xdgrd = getenv("XDG_RUNTIME_DIR"))) {
+    i = snprintf(lockfile_pid, MAX_STRING_SIZE, LOCK_FILE_PID, xdgrd, getpid());
+    j = snprintf(lockfile, MAX_STRING_SIZE, LOCK_FILE, xdgrd);
+  } else {
+    i = snprintf(lockfile_pid, MAX_STRING_SIZE, LOCK_FILE_PID,
+                 "/tmp", getpid());
+    j = snprintf(lockfile, MAX_STRING_SIZE, LOCK_FILE, "/tmp");
+  }
+  if (i < 1 || i >= (MAX_STRING_SIZE-1) || j < 1 || j >= (MAX_STRING_SIZE-1)) {
     fprintf(stderr, "unable to compute lock path\n");
     return 1;
   }
 
-  lock_fd = open(lockfile, O_CREAT);
-  if (link(lockfile, LOCK_FILE)) {
+  lock_fd = open(lockfile_pid, O_CREAT);
+  if (link(lockfile_pid, lockfile)) {
     (void)close(lock_fd);
-    (void)unlink(lockfile);
+    (void)unlink(lockfile_pid);
     perror("unable to lock: ammd already running?");
     return 1;
   }
@@ -169,6 +180,9 @@ int main(int argc, char **argv) {
     perror("sigaction failed");
     return 1;
   }
+#else
+  (void)xdgrd; /* suppress unused warnings */
+  (void)j;
 #endif
 
   (void)memset(currentmap, 0, sizeof(currentmap));
