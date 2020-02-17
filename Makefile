@@ -4,6 +4,7 @@ OPTFLAGS ?= -O3
 DEBUGFLAGS ?= -DDEBUG
 
 default: obj/ammd obj/winclass
+debug: obj/ammd obj/dammd obj/winclass
 clean:
 	rm -rf obj
 
@@ -20,6 +21,9 @@ obj:
 
 obj/ammd: $(HOME)/.appmodmaps/config.h ammd.c obj
 	$(CC) $(CFLAGS) $(OPTFLAGS) "-DUSER_CONFIG=\"$(HOME)/.appmodmaps/config.h\"" -o obj/ammd ammd.c -lX11
+
+obj/dammd: obj/ammd ammd.c obj
+	$(CC) $(CFLAGS) $(DEBUGFLAGS) "-DUSER_CONFIG=\"$(HOME)/.appmodmaps/config.h\"" -o obj/dammd ammd.c -lX11
 
 obj/winclass: obj/ammd ammd.c obj
 	$(CC) $(CFLAGS) $(DEBUGFLAGS) -o obj/winclass ammd.c -lX11
