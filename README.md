@@ -40,9 +40,11 @@ To add new application window name types, obtain the window name from the `XClas
 
 ## To-do
 
+It would be nice to get configuration information from an XDG path as well (currently XDG paths are only used for lockfiles, and only if they are defined).
+
 `ammd` and `winclass` don't check the current front window; they only react on changes. If you start it from a terminal app that needs its services, the bitmap won't change until you switch to something else and then switch back.
 
-Make a friendlier way of configuring the daemon, maybe even allowing live changes. However, this would require coming up with some sort of configuration file format.
+Make a friendlier way of configuring the daemon, maybe even allowing live changes. However, this would require coming up with some sort of configuration file format and having a dependency on it, which makes this more complex than I'd like.
 
 Include additional typical system primitives. (If you have some ideas, file a PR.)
 
@@ -52,7 +54,7 @@ We use the window name as given in the class hint because that's usually what yo
 
 **appmodmap** is offered to you under the BSD license.
 
-Copyright (c) 2018, Cameron Kaiser.
+Copyright (c) 2018-2020, Cameron Kaiser.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
